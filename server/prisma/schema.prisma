@@ -1,0 +1,73 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  campus    String
+  email     String   @unique
+  password  String
+  skills    String   // JSON array: ["design", "programming"]
+  swapScore Float    @default(0)
+  swapCount Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  requests  SwapRequest[]
+  matches   Match[]       @relation("MatchedUser")
+  ratingsGiven    Rating[] @relation("RaterUser")
+  ratingsReceived Rating[] @relation("RatedUser")
+}
+
+model SwapRequest {
+  id           String   @id @default(cuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  offerSkill   String
+  needSkill    String
+  description  String?
+  timeEstimate String   @default("1_day")
+  category     String
+  status       String   @default("active") // active | matched | completed | cancelled
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  matches      Match[]
+}
+
+model Match {
+  id             String      @id @default(cuid())
+  requestId      String
+  request        SwapRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  matchedUserId  String
+  matchedUser    User        @relation("MatchedUser", fields: [matchedUserId], references: [id], onDelete: Cascade)
+  score          Float
+  status         String      @default("pending") // pending | accepted | rejected | completed
+  contactRevealed Boolean   @default(false)
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+
+  rating         Rating?
+}
+
+model Rating {
+  id         String   @id @default(cuid())
+  matchId    String   @unique
+  match      Match    @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  raterId    String
+  rater      User     @relation("RaterUser", fields: [raterId], references: [id])
+  ratedId    String
+  rated      User     @relation("RatedUser", fields: [ratedId], references: [id])
+  score      Int      // 1-5
+  comment    String?
+  createdAt  DateTime @default(now())
+}
