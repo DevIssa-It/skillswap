@@ -95,8 +95,8 @@ npm run dev
 ## 📋 7. Detail Pengumpulan Tugas (Submission Info)
 
 - **Nama Program**: IndonesiaNEXT Hackathon — 3-Hours Speedrun Build
-- **Nama Peserta**: Ahmad Issadurrofiq Jaya Utama
-- **Asal Kampus**: Universitas Tanjungpura / Politeknik Negeri Pontianak
+- **Nama Peserta**: A. Issadurrofiq Jaya Utama
+- **Asal Kampus**: Universitas Brawijaya
 - **GitHub Repository (Monorepo)**: [https://github.com/DevIssa-It/skillswap.git](https://github.com/DevIssa-It/skillswap.git)
 - **Live Staging URL**: [https://skillswap-indonesianext.vercel.app](https://skillswap-indonesianext.vercel.app)
 
