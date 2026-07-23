@@ -86,10 +86,34 @@ Buka [http://localhost:3000](http://localhost:3000) di browser Anda untuk meliha
 ## 📋 7. Detail Pengumpulan Tugas (Submission Info)
 
 - **Nama Program**: IndonesiaNEXT Hackathon — 3-Hours Speedrun Build
-- **Nama Peserta**: Ahmad Issadurrofiq Jaya Utama
-- **Asal Kampus**: Universitas Tanjungpura / Politeknik Negeri Pontianak
-- **GitHub Repository**: [https://github.com/DevIssa-It/skillswap.git](https://github.com/DevIssa-It/skillswap.git)
-- **Live Staging URL**: [https://skillswap-indonesianext.vercel.app](https://skillswap-indonesianext.vercel.app)
+- **Nama Peserta**: A. Issadurrofiq Jaya Utama
+- **Asal Kampus**: Universitas Brawijaya
+- **GitHub Repository (Monorepo)**: [https://github.com/DevIssa-It/skillswap.git](https://github.com/DevIssa-It/skillswap.git)
+- **Live Staging URL**: [https://skillswap-ruby-pi.vercel.app](https://skillswap-ruby-pi.vercel.app)
+
+---
+
+## 🔐 8. Demo Akun (Test Credentials)
+
+Gunakan akun berikut untuk mencoba platform secara langsung tanpa perlu mendaftar:
+
+| Role | Email | Password |
+|:---|:---|:---|
+| User Demo 1 | `demo@skillswap.id` | `demo1234` |
+| User Demo 2 | `barter@skillswap.id` | `demo1234` |
+
+> Atau daftar akun baru gratis di [https://skillswap-ruby-pi.vercel.app/register](https://skillswap-ruby-pi.vercel.app/register)
+
+---
+
+## 🌐 9. Deployment Architecture
+
+| Layer | Platform | URL |
+|:---|:---|:---|
+| **Frontend** | Vercel | [https://skillswap-ruby-pi.vercel.app](https://skillswap-ruby-pi.vercel.app) |
+| **Backend API** | Railway | [https://skillswap-production-b7a0.up.railway.app](https://skillswap-production-b7a0.up.railway.app) |
+| **Database** | SQLite via Prisma (Railway) | — |
 
 ---
 *Created with ❤️ for IndonesiaNEXT Hackathon 2026*
+
