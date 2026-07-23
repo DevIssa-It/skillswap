@@ -19,17 +19,33 @@ const app = express();
 const httpServer = createServer(app);
 
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3000';
+
+// Support multiple origins separated by comma, e.g. "http://localhost:3000,https://skillswap-ruby-pi.vercel.app"
+const allowedOrigins = FRONTEND_URL.split(',').map((o) => o.trim());
+
+const corsOptions = {
+  origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
+    // Allow requests with no origin (e.g. curl, Postman, mobile apps)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    return callback(new Error(`CORS: origin ${origin} not allowed`));
+  },
+  credentials: true,
+};
+
 const PORT = parseInt(process.env.PORT || '3001', 10);
 
 // ─── Socket.io ────────────────────────────────────────────────────────────────
 export const io = new SocketIOServer(httpServer, {
-  cors: { origin: FRONTEND_URL, credentials: true },
+  cors: { origin: allowedOrigins, credentials: true },
 });
 setupSocketHandlers(io);
 
 // ─── Middleware ───────────────────────────────────────────────────────────────
 app.use(helmet({ crossOriginResourcePolicy: false }));
-app.use(cors({ origin: FRONTEND_URL, credentials: true }));
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(cookieParser());
 
@@ -54,7 +70,7 @@ app.use((_req, res) => {
 httpServer.listen(PORT, () => {
   console.log(`\n🚀 SkillSwap API  →  http://localhost:${PORT}`);
   console.log(`📡 Socket.io      →  ready`);
-  console.log(`🌐 CORS origin    →  ${FRONTEND_URL}\n`);
+  console.log(`🌐 CORS origins   →  ${allowedOrigins.join(', ')}\n`);
 });
 
 export default app;
