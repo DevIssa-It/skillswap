@@ -121,7 +121,7 @@ Gunakan akun berikut untuk mencoba platform secara langsung tanpa perlu mendafta
 |:---|:---|:---|
 | **Frontend** | Vercel | [https://skillswap-ruby-pi.vercel.app](https://skillswap-ruby-pi.vercel.app) |
 | **Backend API** | Railway | [https://skillswap-production-b7a0.up.railway.app](https://skillswap-production-b7a0.up.railway.app) |
-| **Database** | SQLite via Prisma (Railway) | — |
+| **Database** | PostgreSQL via Prisma (Railway) | — |
 
 ---
 *Created with ❤️ for IndonesiaNEXT Hackathon 2026*
