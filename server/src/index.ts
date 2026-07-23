@@ -4,6 +4,7 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
+import rateLimit from 'express-rate-limit';
 import { createServer } from 'http';
 import { Server as SocketIOServer } from 'socket.io';
 
@@ -43,11 +44,29 @@ export const io = new SocketIOServer(httpServer, {
 });
 setupSocketHandlers(io);
 
+// ─── Rate Limiting (Harden) ───────────────────────────────────────────────────
+const globalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { success: false, error: 'Too many requests, please try again later.' },
+});
+
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { success: false, error: 'Too many auth attempts, please try again later.' },
+});
+
 // ─── Middleware ───────────────────────────────────────────────────────────────
 app.use(helmet({ crossOriginResourcePolicy: false }));
 app.use(cors(corsOptions));
 app.use(express.json());
 app.use(cookieParser());
+app.use('/api', globalLimiter);
 
 // ─── Health Check ─────────────────────────────────────────────────────────────
 app.get('/api/health', (_req, res) => {
@@ -55,7 +74,7 @@ app.get('/api/health', (_req, res) => {
 });
 
 // ─── Module Routes ────────────────────────────────────────────────────────────
-app.use('/api/auth', authRouter);
+app.use('/api/auth', authLimiter, authRouter);
 app.use('/api/requests', requestsRouter);
 app.use('/api/matches', matchesRouter);
 app.use('/api/ratings', ratingsRouter);

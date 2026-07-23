@@ -2,24 +2,44 @@ import { prisma } from '../../infrastructure/database/prisma.client';
 import { emitToUser } from '../../infrastructure/socket/socket.handler';
 import { Server as SocketIOServer } from 'socket.io';
 
+const USER_SELECT = {
+  id: true, name: true, campus: true, email: true,
+  skills: true, swapScore: true, swapCount: true,
+} as const;
+
 const MATCH_INCLUDE = {
   request: {
-    select: { offerSkill: true, needSkill: true, category: true },
-  },
-  matchedUser: {
     select: {
-      id: true, name: true, campus: true, email: true,
-      skills: true, swapScore: true, swapCount: true,
+      offerSkill: true, needSkill: true, category: true, userId: true,
+      user: { select: USER_SELECT },
     },
   },
+  matchedUser: { select: USER_SELECT },
   rating: { select: { score: true, comment: true } },
 } as const;
 
+// Normalize match so `partner` is always the OTHER user (not the caller)
+function normalize(match: any, userId: string) {
+  const isRequester = match.request.userId === userId;
+  const partner = isRequester ? match.matchedUser : match.request.user;
+  return {
+    id: match.id,
+    score: match.score,
+    status: match.status,
+    contactRevealed: match.contactRevealed,
+    createdAt: match.createdAt,
+    request: {
+      offerSkill: match.request.offerSkill,
+      needSkill: match.request.needSkill,
+      category: match.request.category,
+    },
+    matchedUser: partner,
+    rating: match.rating ?? null,
+  };
+}
+
 export const matchesService = {
   async getMyMatches(userId: string) {
-    // Get matches where the logged-in user is either:
-    // (a) the requester (via request.userId === userId)
-    // (b) the matched user (matchedUserId === userId)
     const [asRequester, asMatched] = await Promise.all([
       prisma.match.findMany({
         where: { request: { userId }, status: { not: 'rejected' } },
@@ -33,9 +53,9 @@ export const matchesService = {
       }),
     ]);
 
-    return [...asRequester, ...asMatched].sort(
-      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-    );
+    return [...asRequester, ...asMatched]
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+      .map(m => normalize(m, userId));
   },
 
   async accept(matchId: string, userId: string, io?: SocketIOServer) {
@@ -49,7 +69,6 @@ export const matchesService = {
 
     if (!match) throw new Error('NOT_FOUND');
 
-    // Both requester and matched user can accept
     const isInvolved =
       match.matchedUserId === userId || match.request.userId === userId;
     if (!isInvolved) throw new Error('FORBIDDEN');
@@ -60,7 +79,6 @@ export const matchesService = {
       data: { status: 'accepted', contactRevealed: true },
     });
 
-    // Notify requester that their match was accepted
     if (io) {
       emitToUser(io, match.request.userId, 'match:accepted', {
         matchId,
@@ -73,10 +91,14 @@ export const matchesService = {
   },
 
   async reject(matchId: string, userId: string) {
-    const match = await prisma.match.findUnique({ where: { id: matchId } });
+    const match = await prisma.match.findUnique({
+      where: { id: matchId },
+      include: { request: true },
+    });
     if (!match) throw new Error('NOT_FOUND');
+
     const isInvolved =
-      match.matchedUserId === userId || match.requestId === userId;
+      match.matchedUserId === userId || match.request.userId === userId;
     if (!isInvolved) throw new Error('FORBIDDEN');
 
     return prisma.match.update({
@@ -92,7 +114,6 @@ export const matchesService = {
     });
     if (!match) throw new Error('NOT_FOUND');
 
-    // Either party can mark as complete
     const isInvolved =
       match.matchedUserId === userId || match.request.userId === userId;
     if (!isInvolved) throw new Error('FORBIDDEN');
@@ -103,7 +124,6 @@ export const matchesService = {
       data: { status: 'completed' },
     });
 
-    // Update swap counts for both users
     await Promise.all([
       prisma.user.update({
         where: { id: match.request.userId },

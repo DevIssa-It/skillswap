@@ -124,4 +124,69 @@ Gunakan akun berikut untuk mencoba platform secara langsung tanpa perlu mendafta
 | **Database** | PostgreSQL via Prisma (Railway) | — |
 
 ---
+
+## 🔄 10. Vibe Coding Loop — Implementasi di Project Ini
+
+Project ini dibangun mengikuti **The Vibe Coding Loop** yang diajarkan di kelas Hacker IndonesiaNEXT oleh Akhri F. Ramadhan (AI Builders). Berikut pemetaan setiap gerakan ke kode nyata:
+
+### 01 FRAME — PRD sebagai Jangkar
+Sebelum menulis satu baris kode pun, problem statement, target user, dan fitur utama didefinisikan terlebih dahulu (lihat bagian 1–4 README ini). Dokumen ini menjadi acuan tetap agar arah pengembangan tidak berubah di tengah jalan.
+
+### 02 SCAFFOLD — Kerangka Arsitektur Modular
+Arsitektur dipisah menjadi tiga concern yang independen:
+```
+Frontend  →  skillswap/  (Next.js, React, Tailwind)
+API       →  server/src/modules/  (Express, modular per domain)
+Database  →  server/prisma/  (Prisma ORM, PostgreSQL)
+```
+Setiap domain (auth, requests, matches, ratings, stats) punya folder `routes → controller → service` sendiri. Satu perubahan di satu modul tidak merusak modul lain.
+
+### 03 INJECT — LLM sebagai Fungsi Inti (Matching Score)
+Algoritma matching bukan sekadar fitur tambahan — ini adalah **inti produk**. Diimplementasikan di [`server/src/modules/requests/requests.service.ts`](server/src/modules/requests/requests.service.ts):
+- +50 poin → mutual match langsung (A offer = B need, B offer = A need)
+- +20 poin → kampus sama
+- +15 poin → estimasi waktu kompatibel
+- +15 poin → reputasi (swapScore dinormalisasi)
+
+Hasil: skor 0–100 yang dihitung otomatis setiap ada request baru, lalu dikirim real-time via Socket.io.
+
+### 04 VERIFY — Tes Koneksi Frontend ↔ API ↔ Database
+Setiap endpoint diuji end-to-end sebelum dianggap selesai:
+- Health check endpoint: `GET /api/health`
+- Auth flow (register → login → JWT → protected route) diverifikasi manual
+- Matching flow (post request → compute → create match → socket emit) diverifikasi di staging
+
+### 05 HARDEN — Checklist Keamanan
+| Checklist | Implementasi |
+|:---|:---|
+| Secret di `.env` | `JWT_SECRET`, `DATABASE_URL` tidak pernah di-hardcode |
+| HTTP Security Headers | `helmet` aktif di semua response |
+| CORS strict | Hanya origin yang terdaftar di `FRONTEND_URL` yang diizinkan |
+| JWT Authentication | Semua endpoint sensitif dilindungi `authMiddleware` |
+| Rate Limiting | Global: 100 req/15min · Auth: 10 req/15min (`express-rate-limit`) |
+| Input Validation | DTO validation di setiap controller sebelum masuk service |
+| Password Hashing | `bcryptjs` untuk semua password user |
+
+### 06 SHIP — Deploy Sejak Awal, Sesering Mungkin
+Deploy dilakukan sejak hari pertama, bukan di akhir:
+- **Frontend** → Vercel (auto-deploy dari GitHub)
+- **Backend** → Railway (auto-deploy dari GitHub)
+- **Database** → PostgreSQL managed di Railway
+
+Error yang muncul saat deploy langsung dijadikan bahan debug (AI Debugging Loop: Capture → Feed → Root → Verify).
+
+---
+
+## 🧠 11. Keresahan yang Dipecahkan (Fall in Love with the Problem)
+
+> *"Fall in love with the problem, not the solution."*
+
+Keresahan ini ditemukan dari **radius 3 meter** — lingkungan mahasiswa sendiri:
+- Teman butuh jasa desain UI tapi tidak punya uang → bayar mahal ke freelancer
+- Teman lain jago desain tapi butuh bantuan analisis data statistik
+- Keduanya punya skill yang saling dibutuhkan, tapi tidak ada platform yang mempertemukan mereka secara adil
+
+SkillSwap hadir bukan karena "kita bisa membuatnya", tapi karena **masalahnya nyata dan terasa setiap hari**.
+
+---
 *Created with ❤️ for IndonesiaNEXT Hackathon 2026*
