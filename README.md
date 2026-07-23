@@ -123,6 +123,26 @@ Gunakan akun berikut untuk mencoba platform secara langsung tanpa perlu mendafta
 | **Backend API** | Railway | [https://skillswap-production-b7a0.up.railway.app](https://skillswap-production-b7a0.up.railway.app) |
 | **Database** | PostgreSQL via Prisma (Railway) | — |
 
+### Environment Variables
+
+> ⚠️ Jangan pernah commit file `.env` ke GitHub. Gunakan `.env.example` sebagai template.
+
+**Backend (`server/.env`)** — set di Railway Dashboard → Variables:
+
+| Variable | Nilai |
+|:---|:---|
+| `DATABASE_URL` | PostgreSQL connection string dari Railway |
+| `JWT_SECRET` | Random string panjang (min. 32 karakter) |
+| `JWT_EXPIRES_IN` | `7d` |
+| `PORT` | `3001` (Railway set otomatis) |
+| `FRONTEND_URL` | `http://localhost:3000,https://skillswap-ruby-pi.vercel.app` |
+
+**Frontend (`skillswap/.env.local`)** — set di Vercel Dashboard → Environment Variables:
+
+| Variable | Nilai |
+|:---|:---|
+| `NEXT_PUBLIC_API_URL` | `https://skillswap-production-b7a0.up.railway.app` |
+
 ---
 
 ## 🔄 10. Vibe Coding Loop — Implementasi di Project Ini
