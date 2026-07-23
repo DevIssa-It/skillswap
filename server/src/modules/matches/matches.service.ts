@@ -49,8 +49,10 @@ export const matchesService = {
 
     if (!match) throw new Error('NOT_FOUND');
 
-    // Only the matched user can accept
-    if (match.matchedUserId !== userId) throw new Error('FORBIDDEN');
+    // Both requester and matched user can accept
+    const isInvolved =
+      match.matchedUserId === userId || match.request.userId === userId;
+    if (!isInvolved) throw new Error('FORBIDDEN');
     if (match.status !== 'pending') throw new Error('INVALID_STATE');
 
     const updated = await prisma.match.update({
@@ -73,7 +75,9 @@ export const matchesService = {
   async reject(matchId: string, userId: string) {
     const match = await prisma.match.findUnique({ where: { id: matchId } });
     if (!match) throw new Error('NOT_FOUND');
-    if (match.matchedUserId !== userId) throw new Error('FORBIDDEN');
+    const isInvolved =
+      match.matchedUserId === userId || match.requestId === userId;
+    if (!isInvolved) throw new Error('FORBIDDEN');
 
     return prisma.match.update({
       where: { id: matchId },
